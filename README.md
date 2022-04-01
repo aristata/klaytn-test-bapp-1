@@ -15,3 +15,10 @@ https://www.inflearn.com/course/%ED%81%B4%EB%A0%88%EC%9D%B4%ED%8A%BC/dashboard
 - Node 14.18.0
 - webpack 4.44.2
 
+### 비밀키
+개발간에 사용한 지갑의 비밀키는 `.secret` 파일에 저장한 다음 truffle-config.js 파일에서 불러와서 사용하였습니다.
+
+프로젝트 최상단 위치(truffle-config.js 파일과 같은 위치)에서 `.secret` 파일을 생성 한 다음 자신의 비밀키를 넣어 사용하시길 바랍니다. 
+
+
+
