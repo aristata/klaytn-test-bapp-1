@@ -95,7 +95,26 @@ const App = {
     },
     
     generateNumbers: async function () {
-    
+        const num1 = Math.floor(Math.random() * 50 + 10)
+        const num2 = Math.floor(Math.random() * 50 + 10)
+        const answer = num1 + num2
+        sessionStorage.setItem("answer", answer)
+        
+        // 시작 부분을 감춘다
+        $('#start').hide()
+        
+        // 생성한 숫자를 span 에 채운다
+        $('#num1').text(num1)
+        $('#num2').text(num2)
+        
+        // 질문 부분을 보이게 한다
+        $('#question').show()
+        
+        // 답 입력 칸으로 포커스를 옮긴다
+        document.querySelector("#answer").focus()
+        
+        // 타이머를 호출한다
+        this.showTimer()
     },
     
     submitAnswer: async function () {
@@ -226,6 +245,9 @@ const App = {
         // 로그아웃 버튼을 드러낸다
         $('#logout').show()
         
+        // 시작 버튼을 드러낸다
+        $('#game').show()
+        
         // 내 계정 주소가 보이게 한다
         $('#address').append('<br>' + '<p>' + '내 계정 주소: ' + walletInstance.address + '</p>')
     
@@ -259,7 +281,24 @@ const App = {
     },
     
     showTimer: function () {
-    
+        // 시간을 3초로 설정
+        let seconds = 3
+        // 타이머 영역의 시간을 표시한다
+        $('#timer').text(seconds)
+        
+        // setInterval 함수로 1초 간격으로 내용을 반복 실행한다
+        const interval = setInterval(() => {
+            // 타이머 영역의 시간을 변경한다
+            $('#timer').text(--seconds)
+            // 시간이 0이되면 초기화 한다
+            if(seconds <= 0) {
+                $('#timer').text('')
+                $('#answer').val('')
+                $('#question').hide()
+                $('#start').show()
+                clearInterval(interval)
+            }
+        }, 1000)
     },
     
     showSpinner: function () {
