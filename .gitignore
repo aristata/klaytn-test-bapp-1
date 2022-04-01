@@ -10,3 +10,4 @@ gen
 build
 node_modules
 .secret
+package-lock.json
