@@ -117,10 +117,6 @@ const App = {
         this.showTimer()
     },
     
-    submitAnswer: async function () {
-    
-    },
-    
     deposit: async function () {
         // 스피너 호출
         const spinner = this.showSpinner()
@@ -250,7 +246,7 @@ const App = {
         
         // 내 계정 주소가 보이게 한다
         $('#address').append('<br>' + '<p>' + '내 계정 주소: ' + walletInstance.address + '</p>')
-    
+        
         // 지갑 잔액을 보이게 한다
         $('#addressBalance').append('<br>' + '<p>' + '지갑 잔액: ' + await this.getWalletBalance(walletInstance) + ' KLAY' + '</p>')
         
@@ -291,14 +287,14 @@ const App = {
             // 타이머 영역의 시간을 변경한다
             $('#timer').text(--seconds)
             // 시간이 0이되면 초기화 한다
-            if(seconds <= 0) {
+            if (seconds <= 0) {
                 $('#timer').text('')
                 $('#answer').val('')
                 $('#question').hide()
                 $('#start').show()
                 clearInterval(interval)
             }
-        }, 1000)
+        }, 3000)
     },
     
     showSpinner: function () {
@@ -306,8 +302,68 @@ const App = {
         return new Spinner(opts).spin(target)
     },
     
-    receiveKlay: function () {
+    submitAnswer: async function () {
+        // 세션에서 정답을 가져온다
+        const answer = sessionStorage.getItem('answer')
+        
+        // 사용자가 입력한 정답을 가져 온다
+        let inputAnswer = $('#answer').val()
+        
+        // 정답이 맞는지 확인하고 틀렸을 경우 얼럿과 함께 함수 종료
+        if (answer !== inputAnswer) {
+            alert(`땡! 틀렸습니다. 정답 = ${answer}, 입력된 값 = ${inputAnswer}`)
+            return
+        }
+        
+        if (confirm("정답 입니다. 0.1 KLAY 받기")) {
+            // 컨트랙 잔액 불러오기
+            const contractBalance = await this.callContractBalance()
+            
+            // 컨트랙 잔액이 0.1 이상인지 확인하기
+            if (contractBalance >= 0.1) this.receiveKlay()
+            else alert("죄송합니다. 컨트랙의 KLAY가 모두 소모 되었습니다")
+        }
+    },
     
+    receiveKlay: function () {
+        // 스피너를 동작 시킨다
+        let spinner = this.showSpinner()
+        
+        // 현재 로그인한 계정의 인스턴스를 가져온다
+        const walletInstance = this.getWallet()
+        
+        // 계정 인스턴스를 찾기 못하면 함수를 종료한다
+        if (!walletInstance) return
+        
+        // transfer 계약을 호출한다
+        agContract.methods.transfer(cav.utils.toPeb("0.1", "KLAY")).send({
+            from: walletInstance.address,
+            gas: "250000"
+        }).then(receipt => {
+            console.log("transfer result (receipt) => ", receipt)
+            // 성공
+            if (receipt.status) {
+                // 스피너를 멈춘다
+                spinner.stop()
+                
+                // 알림을 보여준다
+                alert("0.1 KLAY 가 " + walletInstance.address + " 계정으로 지급되었습니다.")
+                
+                // 트랜잭션 html 영역을 지운다
+                $('#transaction').html("")
+                
+                // 트랜잭션 html 영역에 scope 링크를 붙인다
+                $('#transaction').append(`<p><a href="https://baobab.scope.klaytn.com/tx/${receipt.transactionHash}" target="_blank">
+                    클레이튼 scope 에서 트랜잭션 확인</a></p>`
+                )
+    
+                return agContract.methods.getBalance().call()
+                    .then((balance) => {
+                        $('#contractBalance').html("")
+                        $('#contractBalance').append(`<p>이벤트 잔액: ${cav.utils.fromPeb(balance, "KLAY")} KLAY</p>`)
+                    })
+            }
+        })
     }
 };
 
